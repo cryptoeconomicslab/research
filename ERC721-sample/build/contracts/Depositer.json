@@ -1,0 +1,78 @@
+{
+  "contractName": "Depositer",
+  "abi": [
+    {
+      "name": "depositERC721",
+      "outputs": [],
+      "inputs": [
+        {
+          "type": "address",
+          "name": "tokenAddress"
+        },
+        {
+          "type": "uint256",
+          "name": "nftId"
+        }
+      ],
+      "constant": false,
+      "payable": false,
+      "type": "function",
+      "gas": 37253
+    },
+    {
+      "name": "ownerOf",
+      "outputs": [
+        {
+          "type": "address",
+          "name": "out"
+        }
+      ],
+      "inputs": [
+        {
+          "type": "uint256",
+          "name": "nftId"
+        }
+      ],
+      "constant": true,
+      "payable": false,
+      "type": "function",
+      "gas": 646
+    },
+    {
+      "name": "tokenIdToAddress",
+      "outputs": [
+        {
+          "type": "address",
+          "name": "out"
+        }
+      ],
+      "inputs": [
+        {
+          "type": "uint256",
+          "name": "arg0"
+        }
+      ],
+      "constant": true,
+      "payable": false,
+      "type": "function",
+      "gas": 676
+    }
+  ],
+  "bytecode": "0x6101bd56600035601c52740100000000000000000000000000000000000000006020526f7fffffffffffffffffffffffffffffff6040527fffffffffffffffffffffffffffffffff8000000000000000000000000000000060605274012a05f1fffffffffffffffffffffffffdabf41c006080527ffffffffffffffffffffffffed5fa0e000000000000000000000000000000000060a05263d29a4bf6600051141561013957604060046101403734156100b457600080fd5b60043560205181106100c557600080fd5b503361018052610140513b6100d957600080fd5b610140513014156100e957600080fd5b6000600060646323b872dd6101a052610180516101c052306101e05261016051610200526101bc6000610140515af161012157600080fd5b6101805160006101605160e05260c052604060c02055005b636352211e6000511415610176576020600461014037341561015a57600080fd5b60006101405160e05260c052604060c0205460005260206000f3005b6308bb76a560005114156101b3576020600461014037341561019757600080fd5b60006101405160e05260c052604060c0205460005260206000f3005b60006000fd5b6100046101bd036100046000396100046101bd036000f3",
+  "deployedBytecode": "0x600035601c52740100000000000000000000000000000000000000006020526f7fffffffffffffffffffffffffffffff6040527fffffffffffffffffffffffffffffffff8000000000000000000000000000000060605274012a05f1fffffffffffffffffffffffffdabf41c006080527ffffffffffffffffffffffffed5fa0e000000000000000000000000000000000060a05263d29a4bf6600051141561013957604060046101403734156100b457600080fd5b60043560205181106100c557600080fd5b503361018052610140513b6100d957600080fd5b610140513014156100e957600080fd5b6000600060646323b872dd6101a052610180516101c052306101e05261016051610200526101bc6000610140515af161012157600080fd5b6101805160006101605160e05260c052604060c02055005b636352211e6000511415610176576020600461014037341561015a57600080fd5b60006101405160e05260c052604060c0205460005260206000f3005b6308bb76a560005114156101b3576020600461014037341561019757600080fd5b60006101405160e05260c052604060c0205460005260206000f3005b60006000fd",
+  "sourcePath": "/Users/yurikonishijima/vyper-example/contracts/Depositer.vy",
+  "compiler": {
+    "name": "vyper",
+    "version": "0.1.0b8"
+  },
+  "networks": {
+    "5777": {
+      "events": {},
+      "links": {},
+      "address": "0xf7e7dc8Fa6C7dC75C7d2E64662f26307eA390CEF",
+      "transactionHash": "0x401cb41052758f146bd5c925334b2b7220571e29f0b5c343bb54a1692acb1f48"
+    }
+  },
+  "schemaVersion": "3.0.9",
+  "updatedAt": "2019-05-17T10:03:34.170Z"
+}
