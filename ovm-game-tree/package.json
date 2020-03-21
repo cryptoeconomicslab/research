@@ -1,0 +1,16 @@
+{
+  "name": "gametree",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@cryptoeconomicslab/ovm-parser": "^0.2.12",
+    "@cryptoeconomicslab/ovm-transpiler": "^0.2.13",
+    "@cryptoeconomicslab/primitives": "0.0.37"
+  }
+}
