@@ -2,46 +2,69 @@ const parser = require("@cryptoeconomicslab/ovm-parser");
 const {
   applyLibraries
 } = require("@cryptoeconomicslab/ovm-transpiler/lib/QuantifierTranslater");
+const challengeV1 = require("./rules/v1");
+const challengeV2 = require("./rules/v2");
+const challengeV3 = require("./rules/v3");
+const checkpoint = require("./properties/checkpoint");
+const swap = require("./properties/swap");
+const exit = require("./properties/exit");
 
 const chamberParser = new parser.Parser();
-const parsed = chamberParser.parse(`
-@library
-@quantifier("range,NUMBER,\${zero}-\${upper_bound}")
-def LessThan(n, upper_bound) :=
-  IsLessThan(n, upper_bound)
 
-@library
-@quantifier("proof.block\${b}.range\${token},RANGE,\${range}")
-def IncludedAt(proof, leaf, token, range, b) :=
-  VerifyInclusion(leaf, token, range, proof, b)
+function transpile(source) {
+  const parsed = chamberParser.parse(source);
+  return applyLibraries(parsed.declarations, [], { zero: 0 });
+}
 
-@library
-@quantifier("so.block\${b}.range\${token},RANGE,\${range}")
-def SU(so, token, range, b) :=
-  IncludedAt(so, token, range, b).any()
+const checkpointProperty = transpile(checkpoint)[3].body;
+const swapProperty = transpile(swap)[7].body;
+const exitProperty = transpile(exit)[0].body;
+const Entity1 = 1;
+const Entity2 = -1;
 
-def checkpoint(su) := 
-  LessThan(su.2).all(b -> 
-    SU(su.0, su.1, b).all(old_su -> old_su())
-  )
+showResult("Checkpoint", checkpointProperty);
+showResult("Swap", swapProperty);
+showResult("Exit", exitProperty);
 
-`);
-const transpiled = applyLibraries(parsed.declarations, [], { zero: 0 });
-const property = transpiled[3].body;
-console.log("V1");
-showGameTree(property, 1);
-console.log("V2");
-showGameTree(property, 2);
+function showResult(name, property) {
+  console.log("==========");
+  console.log(name);
+  console.log("V1");
+  console.log("Max depth", showGameTree(property, 1));
+  console.log("V2");
+  console.log("Max depth", showGameTree(property, 2));
+  console.log("V3");
+  console.log("Max depth", showGameTree(property, 3));
+  console.log("==========");
+}
 
-function showGameTree(property, version, depth = 1) {
-  console.log(new Array(depth).join("-"), formatProperty(property));
-  challenge(property, version).map(p => showGameTree(p, version, depth + 1));
+function showGameTree(property, version, depth = 1, entity = Entity1) {
+  console.log(
+    `${getEntity(entity)}:`,
+    new Array(depth).join("-"),
+    formatProperty(property)
+  );
+  const depthArray = challenge(property, version).map(p =>
+    showGameTree(p, version, depth + 1, entity * -1)
+  );
+  if (depthArray.length === 0) {
+    return depth;
+  }
+  return Math.max(...depthArray);
+}
+
+function getEntity(entity) {
+  if (entity == Entity1) return "Q";
+  else if (entity == Entity2) return "P";
+  else throw new Error("invalid entity");
 }
 
 function formatProperty(property) {
   const predicate = property.predicate;
   if (predicate == "ForAllSuchThat" || predicate == "ThereExistsSuchThat") {
-    return predicate + "(" + formatProperty(property.inputs[2]) + ")";
+    return (
+      replaceName(predicate) + "(" + formatProperty(property.inputs[2]) + ")"
+    );
   } else if (predicate == "And" || predicate == "Or" || predicate == "Not") {
     return predicate + "(" + property.inputs.map(i => formatProperty(i)) + ")";
   } else {
@@ -49,126 +72,22 @@ function formatProperty(property) {
   }
 }
 
+function replaceName(predicate) {
+  if (predicate === "ForAllSuchThat") {
+    return "All";
+  } else if (predicate === "ThereExistsSuchThat") {
+    return "Any";
+  } else {
+    throw new Error("invalid predicate name");
+  }
+}
+
 function challenge(property, version) {
-  if (version == 1) {
+  if (version === 1) {
     return challengeV1(property);
-  } else {
+  } else if (version === 2) {
     return challengeV2(property);
-  }
-}
-
-/**
- * V1: Original Rule
- * @param {*} property
- */
-function challengeV1(property) {
-  const predicate = property.predicate;
-  if (predicate == "ForAllSuchThat") {
-    return [
-      {
-        predicate: "Not",
-        inputs: [property.inputs[2]]
-      }
-    ];
-  } else if (predicate == "ThereExistsSuchThat") {
-    return [
-      {
-        predicate: "ForAllSuchThat",
-        inputs: [
-          "",
-          "",
-          {
-            predicate: "Not",
-            inputs: [property.inputs[2]]
-          }
-        ]
-      }
-    ];
-  } else if (predicate == "And") {
-    return property.inputs.map(i => {
-      return {
-        predicate: "Not",
-        inputs: [i]
-      };
-    });
-  } else if (predicate == "Or") {
-    return [
-      {
-        predicate: "And",
-        inputs: property.inputs.map(i => {
-          return {
-            predicate: "Not",
-            inputs: [i]
-          };
-        })
-      }
-    ];
-  } else if (predicate == "Not") {
-    return [property.inputs[0]];
   } else {
-    return [];
-  }
-}
-
-/**
- * V2: Optimized Rule
- * @param {*} property
- */
-function challengeV2(property) {
-  const predicate = property.predicate;
-  if (predicate == "ForAllSuchThat") {
-    const c = challengeV2(property.inputs[2]);
-    if (c.length > 0) {
-      return c;
-    } else {
-      return [
-        {
-          predicate: "Not",
-          inputs: [property.inputs[2]]
-        }
-      ];
-    }
-  } else if (predicate == "ThereExistsSuchThat") {
-    return [
-      {
-        predicate: "ForAllSuchThat",
-        inputs: [
-          "",
-          "",
-          {
-            predicate: "Not",
-            inputs: [property.inputs[2]]
-          }
-        ]
-      }
-    ];
-  } else if (predicate == "And") {
-    return property.inputs.map(i => {
-      const c = challengeV2(i);
-      if (c.length > 0) {
-        return c[0];
-      } else {
-        return {
-          predicate: "Not",
-          inputs: [i]
-        };
-      }
-    });
-  } else if (predicate == "Or") {
-    return [
-      {
-        predicate: "And",
-        inputs: property.inputs.map(i => {
-          return {
-            predicate: "Not",
-            inputs: [i]
-          };
-        })
-      }
-    ];
-  } else if (predicate == "Not") {
-    return [property.inputs[0]];
-  } else {
-    return [];
+    return challengeV3(property);
   }
 }
