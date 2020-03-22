@@ -37,3 +37,60 @@ npm i
 ```
 node index.js
 ```
+
+### Example Game Tree
+
+```
+==========
+Checkpoint
+V1
+Q:  All(Or(Not(IsLessThan),All(Or(Not(Any(VerifyInclusion)),old_su))))
+P: - Not(Or(Not(IsLessThan),All(Or(Not(Any(VerifyInclusion)),old_su))))
+Q: -- Or(Not(IsLessThan),All(Or(Not(Any(VerifyInclusion)),old_su)))
+P: --- And(Not(Not(IsLessThan)),Not(All(Or(Not(Any(VerifyInclusion)),old_su))))
+Q: ---- Not(Not(Not(IsLessThan)))
+P: ----- Not(Not(IsLessThan))
+Q: ------ Not(IsLessThan)
+P: ------- IsLessThan
+Q: ---- Not(Not(All(Or(Not(Any(VerifyInclusion)),old_su))))
+P: ----- Not(All(Or(Not(Any(VerifyInclusion)),old_su)))
+Q: ------ All(Or(Not(Any(VerifyInclusion)),old_su))
+P: ------- Not(Or(Not(Any(VerifyInclusion)),old_su))
+Q: -------- Or(Not(Any(VerifyInclusion)),old_su)
+P: --------- And(Not(Not(Any(VerifyInclusion))),Not(old_su))
+Q: ---------- Not(Not(Not(Any(VerifyInclusion))))
+P: ----------- Not(Not(Any(VerifyInclusion)))
+Q: ------------ Not(Any(VerifyInclusion))
+P: ------------- Any(VerifyInclusion)
+Q: -------------- All(Not(VerifyInclusion))
+P: --------------- Not(Not(VerifyInclusion))
+Q: ---------------- Not(VerifyInclusion)
+P: ----------------- VerifyInclusion
+Q: ---------- Not(Not(old_su))
+P: ----------- Not(old_su)
+Q: ------------ old_su
+Max depth 18
+V2
+Q:  All(Or(Not(IsLessThan),All(Or(Not(Any(VerifyInclusion)),old_su))))
+P: - And(Not(Not(IsLessThan)),Not(All(Or(Not(Any(VerifyInclusion)),old_su))))
+Q: -- Not(IsLessThan)
+P: --- IsLessThan
+Q: -- All(Or(Not(Any(VerifyInclusion)),old_su))
+P: --- And(Not(Not(Any(VerifyInclusion))),Not(old_su))
+Q: ---- Not(Any(VerifyInclusion))
+P: ----- Any(VerifyInclusion)
+Q: ---- old_su
+Max depth 6
+V3
+Q:  All(Or(Not(IsLessThan),All(Or(Not(Any(VerifyInclusion)),old_su))))
+P: - And(IsLessThan,Not(All(Or(Not(Any(VerifyInclusion)),old_su))))
+Q: -- Not(IsLessThan)
+P: --- IsLessThan
+Q: -- All(Or(Not(Any(VerifyInclusion)),old_su))
+P: --- And(Any(VerifyInclusion),Not(old_su))
+Q: ---- Not(Any(VerifyInclusion))
+P: ----- Any(VerifyInclusion)
+Q: ---- old_su
+Max depth 6
+==========
+```

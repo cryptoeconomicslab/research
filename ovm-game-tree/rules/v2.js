@@ -7,7 +7,7 @@ const isImmediateDecidable = require("./decide");
 function challengeV2(property) {
   const predicate = property.predicate;
   if (isImmediateDecidable(property)) {
-    //return [];
+    return [];
   }
   if (predicate == "ForAllSuchThat") {
     const c = challengeV2(property.inputs[2]);
