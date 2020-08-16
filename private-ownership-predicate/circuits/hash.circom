@@ -1,30 +1,16 @@
-include "../node_modules/circomlib/circuits/eddsa.circom";
 include "../node_modules/circomlib/circuits/sha256/sha256.circom";
 
-template PrivateOwnershipPredicate(n) {
+template HashPublicKey() {
   // Public inputs
-  signal input tx[n];
   signal output ph[256];
 
   // private inputs
   signal private input pub_key[256];
-  signal private input sig[2][256];
   signal private input salt[256];
 
   component sha256 = Sha256(512)
-  component eddsa = EdDSAVerifier(n)
   var i;
 
-  for (i=0; i<n; i++) {
-    eddsa.msg[i] <-- tx[i];
-  }
-
-  for (i=0; i<256; i++) {
-    eddsa.A[i]  <-- pub_key[i];
-    eddsa.R8[i] <-- sig[0][i];
-    eddsa.S[i]  <-- sig[1][i];
-  }
-  
   for (i=0; i<256; i++) {
     sha256.in[i] <-- pub_key[i];
   }
@@ -37,4 +23,4 @@ template PrivateOwnershipPredicate(n) {
   }
 }
 
-component main = PrivateOwnershipPredicate(256);
+component main = HashPublicKey();

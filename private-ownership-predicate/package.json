@@ -4,12 +4,13 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
+    "circom": "^0.5.19",
     "circomlib": "^0.2.3",
     "ethers": "^5.0.7",
     "wasmsnark": "0.0.10"
   },
   "devDependencies": {
-    "snarkjs": "^0.3.12"
+    "snarkjs": "^0.3.16"
   },
   "scripts": {
     "export": "sh scripts/export.sh",
