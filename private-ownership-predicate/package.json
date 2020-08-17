@@ -1,0 +1,23 @@
+{
+  "name": "private-plasma",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "dependencies": {
+    "circom": "^0.5.19",
+    "circomlib": "^0.2.3",
+    "ethers": "^5.0.7",
+    "wasmsnark": "0.0.10"
+  },
+  "devDependencies": {
+    "snarkjs": "^0.3.16"
+  },
+  "scripts": {
+    "export": "sh scripts/export.sh",
+    "setup": "sh scripts/setup.sh",
+    "compile": "sh scripts/compile.sh",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC"
+}
