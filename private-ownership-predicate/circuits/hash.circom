@@ -22,5 +22,3 @@ template HashPublicKey() {
     sha256.out[i] --> ph[i];
   }
 }
-
-component main = HashPublicKey();

@@ -31,22 +31,35 @@ async function run() {
     transaction,
     zkProof,
   } = await executeSenderProcedure(bobPackedPubKey);
-  // Bob check transaction's sender and recipient addresses.
-  const isValidTransferForBob = await executeRecipientProcedure(
+
+  // Bob can check transaction's sender and recipient addresses.
+  const senderHashedPublicKey = await hashPublicKey(
     alicePackedPubKey,
-    bobPackedPubKey,
-    senderSalt,
-    recipientSalt,
-    transaction,
-    zkProof
+    senderSalt
   );
-  // Carol can check transaction with hashed owner address, transaction and zk-proof.
-  const isValidTransferForCarol = await executeVerifierProcedure(
+  const recipientHashedPublicKey = await hashPublicKey(
+    bobPackedPubKey,
+    recipientSalt
+  );
+  if (hashedOwner.toString("hex") !== senderHashedPublicKey.toString("hex")) {
+    throw new Error("invalid sender address");
+  }
+  if (
+    transaction.toString("hex") !== recipientHashedPublicKey.toString("hex")
+  ) {
+    throw new Error("invalid recipient address");
+  }
+
+  // Carol can prove deprecation with hashed owner address, transaction and zk-proof.
+  const isValidDeprecation = await proveDeprecation(
     hashedOwner,
     transaction,
     zkProof
   );
-  console.log(isValidTransferForBob && isValidTransferForCarol);
+  if (!isValidDeprecation) {
+    throw new Error("invalid deprecation");
+  }
+  console.log("valid deprecation");
 }
 
 run().then(() => {
@@ -63,7 +76,8 @@ async function executeSenderProcedure(recipientPackedPublicKey) {
     recipientPackedPublicKey,
     recipientSalt
   );
-  const transaction = bobHashedPublicKey; //Buffer.from(arrayify(keccak256(toUtf8Bytes("message"))));
+  const transaction = bobHashedPublicKey;
+  // Buffer.from(arrayify(keccak256(toUtf8Bytes("message"))));
   const signature = eddsa.sign(alicePrvKey, transaction);
   const pSignature = eddsa.packSignature(signature);
   const uSignature = eddsa.unpackSignature(pSignature);
@@ -84,7 +98,7 @@ async function executeSenderProcedure(recipientPackedPublicKey) {
   const { proof, publicSignals } = await snarkjs.groth16.fullProve(
     inputs,
     "./build/circuits/ownership.wasm",
-    "./build/keys/ownership.circom_circuit_final.zkey"
+    "./build/circuits/ownership_circuit_final.zkey"
   );
 
   return {
@@ -100,35 +114,7 @@ async function executeSenderProcedure(recipientPackedPublicKey) {
   };
 }
 
-async function executeRecipientProcedure(
-  senderPackedPubKey,
-  recipientPackedPubKey,
-  senderSalt,
-  recipientSalt,
-  transaction,
-  zkProof
-) {
-  const senderHashedPublicKey = await hashPublicKey(
-    senderPackedPubKey,
-    senderSalt
-  );
-  const recipientHashedPublicKey = await hashPublicKey(
-    recipientPackedPubKey,
-    recipientSalt
-  );
-  if (
-    transaction.toString("hex") !== recipientHashedPublicKey.toString("hex")
-  ) {
-    return false;
-  }
-  return await executeVerifierProcedure(
-    senderHashedPublicKey,
-    transaction,
-    zkProof
-  );
-}
-
-async function executeVerifierProcedure(
+async function proveDeprecation(
   hashedPublicKey,
   transaction,
   { proof, publicSignals }
@@ -150,8 +136,7 @@ async function executeVerifierProcedure(
 
   const vKey = JSON.parse(fs.readFileSync("./verification_key.json"));
 
-  const res = await snarkjs.groth16.verify(vKey, publicSignals, proof);
-  return res;
+  return await snarkjs.groth16.verify(vKey, publicSignals, proof);
 }
 
 async function hashPublicKey(pPubKey, salt) {
@@ -161,7 +146,7 @@ async function hashPublicKey(pPubKey, salt) {
       salt: buffer2bits(salt),
     },
     "./build/circuits/hash.wasm",
-    "./build/keys/hash.circom_circuit_final.zkey"
+    "./build/circuits/hash_circuit_final.zkey"
   );
   const publicInputs = ffjs.utils.unstringifyBigInts(publicSignals);
   const publicInputsBuffer = bit2buffer(publicInputs);
