@@ -12,72 +12,81 @@ template StateTransitionVerifier(txn, state_tree_depth) {
 
   // private inputs
   // [tx_type, from, to, amount, sig, sig, sig]
-  signal private input txs[txn][19 + state_tree_depth * 2];
+  signal private input txs[txn][13 + state_tree_depth * 2];
 
   var cur_root = old_root;
 
   for (var i=0; i<txn; i++) {
-    component transfer = Transfer(state_tree_depth);
 
+    component isTransfer = IsEqual();
+    isTransfer.in[0] <== txs[i][0];
+    isTransfer.in[1] <== 1;
+    component isTransferNew = IsEqual();
+    isTransferNew.in[0] <== txs[i][0];
+    isTransferNew.in[1] <== 2;
+
+    component transfer = Transfer(state_tree_depth);
+    transfer.enabled <== isTransfer.out;
     transfer.pub_tx <== pub_txs[i];
     for (var j=0; j<7; j++) {
       transfer.tx[j] <== txs[i][j];
     }
-    for (var j=0; j<3; j++) {
-      transfer.old_leaf_from[j] <== txs[i][7 + j];
-      transfer.new_leaf_from[j] <== txs[i][10 + j];
-      transfer.old_leaf_to[j] <== txs[i][13 + j];
-      transfer.new_leaf_to[j] <== txs[i][16 + j];
-    }
+    transfer.fromId <== txs[i][7];
+    transfer.toId <== txs[i][8];
+    transfer.fromAddress[0] <== txs[i][9];
+    transfer.fromAddress[1] <== txs[i][10];    
+    transfer.balanceFrom <== txs[i][11];
+    transfer.balanceTo <== txs[i][12];
+
     for (var j=0; j<state_tree_depth; j++) {
-      transfer.siblings_from[j] <== txs[i][19 + j];
-      transfer.siblings_to[j] <== txs[i][19 + state_tree_depth + j];
+      transfer.siblings_from[j] <== txs[i][13 + j];
+      transfer.siblings_to[j] <== txs[i][13 + state_tree_depth + j];
     }
-    transfer.old_root <== cur_root;
+    transfer.oldRoot <== cur_root;
+
+    component deposit = Deposit(state_tree_depth);
+    deposit.pub_tx <== pub_txs[i];
+    for (var j=0; j<7; j++) {
+      deposit.tx[j] <== txs[i][j];
+    }
+    deposit.toId <== txs[i][7];
+    deposit.balanceTo <== txs[i][10];
+
+    for (var j=0; j<state_tree_depth; j++) {
+      deposit.siblings_to[j] <== txs[i][11 + state_tree_depth + j];
+    }
+    deposit.oldRoot <== cur_root;
 
     component transferToNew = TransferToNew(state_tree_depth);
-
+    transferToNew.enabled <== isTransferNew.out;
     transferToNew.pub_tx <== pub_txs[i];
     for (var j=0; j<7; j++) {
       transferToNew.tx[j] <== txs[i][j];
     }
-    for (var j=0; j<3; j++) {
-      transferToNew.old_leaf_from[j] <== txs[i][7 + j];
-      transferToNew.new_leaf_from[j] <== txs[i][10 + j];
-      transferToNew.old_leaf_to[j] <== txs[i][13 + j];
-      transferToNew.new_leaf_to[j] <== txs[i][16 + j];
-    }
-    for (var j=0; j<state_tree_depth; j++) {
-      transferToNew.siblings_from[j] <== txs[i][19 + j];
-      transferToNew.siblings_to[j] <== txs[i][19 + state_tree_depth + j];
-    }
-    transferToNew.old_root <== cur_root;
+    transferToNew.fromId <== txs[i][7];
+    transferToNew.toId <== txs[i][8];
+    transfer.fromAddress[0] <== txs[i][9];
+    transfer.fromAddress[1] <== txs[i][10];
+    transferToNew.balanceFrom <== txs[i][11];
+    transferToNew.balanceTo <== txs[i][12];
 
-    component deposit = Deposit(state_tree_depth);
-    deposit.pub_tx <== pub_txs[i];
-    for (var j=0; j<3; j++) {
-      deposit.tx[j] <== txs[i][j];
-    }
-    for (var j=0; j<3; j++) {
-      deposit.old_leaf_to[j] <== txs[i][3 + j];
-      deposit.new_leaf_to[j] <== txs[i][6 + j];
-    }
     for (var j=0; j<state_tree_depth; j++) {
-      deposit.siblings_to[j] <== txs[i][9 + state_tree_depth + j];
+      transferToNew.siblings_from[j] <== txs[i][13 + j];
+      transferToNew.siblings_to[j] <== txs[i][13 + state_tree_depth + j];
     }
-    deposit.old_root <== cur_root;
+    transferToNew.oldRoot <== cur_root;
 
     component txResult = IfElseThen(1);
     txResult.obj1[0] <== txs[i][0];
     txResult.obj2[0] <== 0;
-    txResult.if_v <== deposit.new_root;
-    txResult.else_v <== transfer.new_root;
+    txResult.if_v <== deposit.out[1];
+    txResult.else_v <== transfer.out[1];
 
     component txResultNew = IfElseThen(1);
     txResultNew.obj1[0] <== txs[i][0];
     txResultNew.obj2[0] <== 1;
     txResultNew.if_v <== txResult.out;
-    txResultNew.else_v <== transferToNew.new_root;
+    txResultNew.else_v <== transferToNew.out[1];
 
     cur_root = txResultNew.out;
   }
