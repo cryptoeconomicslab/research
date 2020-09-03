@@ -10,6 +10,7 @@ template TransferToNew(state_tree_depth) {
   signal input fromId;
   signal input toId;
   signal input fromAddress[2];
+  signal input toAddress[2];
   signal input balanceFrom;
   signal input balanceTo;
   signal input siblings_from[state_tree_depth];
@@ -27,6 +28,8 @@ template TransferToNew(state_tree_depth) {
     account.siblings[j] <== siblings_from[j];
   }
   account.accountId <== fromId;
+  account.pubKey[0] <== fromAddress[0];
+  account.pubKey[1] <== fromAddress[1];
   account.oldBalance <== balanceFrom;
   account.newBalance <== balanceFrom - tx[3];
 
@@ -36,6 +39,8 @@ template TransferToNew(state_tree_depth) {
     accountTo.siblings[j] <== siblings_to[j];
   }
   accountTo.accountId <== toId;
+  accountTo.pubKey[0] <== toAddress[0];
+  accountTo.pubKey[1] <== toAddress[1];
   accountTo.oldBalance <== balanceTo;
   accountTo.newBalance <== balanceTo + tx[3];
 

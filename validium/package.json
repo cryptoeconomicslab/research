@@ -4,9 +4,12 @@
   "description": "",
   "main": "index.js",
   "dependencies": {
+    "chai-as-promised": "^7.1.1",
     "circom": "^0.5.19",
     "circomlib": "^0.2.4",
+    "ethereum-waffle": "^3.1.0",
     "ethers": "^5.0.7",
+    "mocha": "^8.1.3",
     "wasmsnark": "0.0.10",
     "web3-utils": "^1.2.11"
   },
@@ -16,8 +19,9 @@
   "scripts": {
     "export": "sh scripts/export.sh",
     "setup": "sh scripts/setup.sh",
-    "compile": "NODE_OPTIONS='--max-old-space-size=12288' sh scripts/compile.sh",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "compile": "NODE_OPTIONS='--max-old-space-size=8192' sh scripts/compile.sh",
+    "build": "waffle waffle.json",
+    "test": "npm run build && mocha 'test/**/*.test.js' --parallel --timeout 5000"
   },
   "author": "",
   "license": "ISC"

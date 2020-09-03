@@ -4,6 +4,7 @@ const circomlib = require("circomlib");
 const eddsa = circomlib.eddsa;
 const babyJub = circomlib.babyJub;
 const smt = circomlib.smt;
+const poseidon = circomlib.poseidon;
 
 const ffjs = require("ffjavascript");
 const Fr = require("ffjavascript").Scalar;
@@ -25,7 +26,8 @@ const bobPubKey = eddsa.prv2pub(bobPrvKey);
 const bobPackedPubKey = babyJub.packPoint(bobPubKey);
 
 async function run() {
-  await deposit();
+  const verified = await deposit();
+  console.log(verified);
 }
 
 run().then(() => {
@@ -34,76 +36,29 @@ run().then(() => {
 
 async function deposit() {
   const tree = await smt.newMemEmptyTrie();
-  const res = await tree.insert(Fr.e(8), Fr.e(8));
+  const newLeaf = poseidon([0, 0, 0]);
+  const res = await tree.insert(Fr.e(0), newLeaf);
   let siblings = res.siblings;
   while (siblings.length < 3) siblings.push(Fr.e(0));
   const inputs = {
     old_root: res.oldRoot,
     pub_txs: [0, 0],
     txs: [
-      [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-      ],
-      [
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-        0,
-      ],
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        .concat(siblings)
+        .concat([0]),
+      [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        .concat(siblings)
+        .concat([0]),
     ],
   };
-  console.log(inputs);
+  console.log(inputs, res.oldRoot);
   const { proof, publicSignals } = await snarkjs.groth16.fullProve(
     inputs,
     "./build/circuits/state_transition_verifier.wasm",
     "./build/circuits/state_transition_verifier_circuit_final.zkey"
   );
-  console.log("proof", proof);
+  console.log("proof", proof, publicSignals);
 
   const vKey = JSON.parse(fs.readFileSync("./verification_key.json"));
 

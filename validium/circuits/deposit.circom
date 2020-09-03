@@ -9,11 +9,13 @@ template Deposit(state_tree_depth) {
   signal input tx[7];
   signal input fromId;
   signal input toId;
+  signal input toAddress[2];
   signal input balanceFrom;
   signal input balanceTo;
   signal input siblings_from[state_tree_depth];
   signal input siblings_to[state_tree_depth];
   signal input oldRoot;
+  signal input enabled;
   // isValid and newRoot
   signal output out[2];
 
@@ -25,6 +27,8 @@ template Deposit(state_tree_depth) {
     accountTo.siblings[j] <== siblings_to[j];
   }
   accountTo.accountId <== toId;
+  accountTo.pubKey[0] <== toAddress[0];
+  accountTo.pubKey[1] <== toAddress[1];
   accountTo.oldBalance <== balanceTo;
   accountTo.newBalance <== balanceTo + tx[3];
 
